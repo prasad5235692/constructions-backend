@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-let cachedClient = null;
+const cached = { conn: null, promise: null };
 
 async function connectDB() {
   const uri = process.env.MONGODB_URI;
@@ -8,23 +8,26 @@ async function connectDB() {
     throw new Error('MONGODB_URI is not configured');
   }
 
-  if (mongoose.connection.readyState >= 1) {
-    return mongoose.connection;
+  if (cached.conn) {
+    return cached.conn;
   }
 
-  if (cachedClient) {
-    return cachedClient;
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(uri).then((conn) => {
+      console.log(`MongoDB Connected: ${conn.connection.host}`);
+      return conn.connection;
+    });
   }
 
   try {
-    const conn = await mongoose.connect(uri);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-    cachedClient = conn.connection;
-    return conn.connection;
+    cached.conn = await cached.promise;
   } catch (error) {
+    cached.promise = null;
     console.error(`MongoDB connection error: ${error.message}`);
     throw error;
   }
+
+  return cached.conn;
 }
 
 module.exports = connectDB;
