@@ -8,7 +8,6 @@ const run = async () => {
   try {
     await connectDB();
     console.log('Connected to DB. Scanning for users with invalid permissions...');
-
     const allUsers = await User.find({});
     let fixed = 0;
 
