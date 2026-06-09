@@ -11,8 +11,12 @@ const router = express.Router();
 const baseUploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads');
 const uploadDirectory = path.join(baseUploadDir, 'documents');
 
-if (!fs.existsSync(uploadDirectory)) {
-  fs.mkdirSync(uploadDirectory, { recursive: true });
+try {
+  if (!fs.existsSync(uploadDirectory)) {
+    fs.mkdirSync(uploadDirectory, { recursive: true });
+  }
+} catch (_) {
+  console.warn('Upload directory not available (running on serverless?)');
 }
 
 const storage = multer.diskStorage({
